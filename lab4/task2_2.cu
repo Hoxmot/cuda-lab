@@ -22,7 +22,7 @@ __global__ void mul(int *m, int *v, int *res, size_t l) {
     int step = gridDim.x * blockDim.x;
     int k;
     for (; i < l * l; i += step) {
-	k = i / l
+	k = i / l;
 	res[i] = m[i] * v[k];
     }
 }
@@ -31,8 +31,8 @@ int main() {
     int m_cpu[LEN * LEN], v_cpu[LEN], res_cpu[LEN * LEN];
 
     for (int i = 0; i < LEN; i++) {
-	v1_cpu[i] = i;
-	v2_cpu[i] = i * 40 + 2;
+	    m_cpu[i] = i;
+	    v_cpu[i] = i * 40 + 2;
     }
 
     cudaError_t status;
@@ -67,11 +67,11 @@ int main() {
 	cout << cudaGetErrorString(status) << endl;
     }
 
-    status = cudaFree(v1_gpu);
+    status = cudaFree(m_gpu);
     if (status != cudaSuccess) {
 	cout << cudaGetErrorString(status) << endl;
     }
-    status = cudaFree(v2_gpu);
+    status = cudaFree(v_gpu);
     if (status != cudaSuccess) {
 	cout << cudaGetErrorString(status) << endl;
     }

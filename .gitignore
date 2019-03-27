@@ -1,3 +1,6 @@
 # vscode config
 *.code-workspace
 .vscode
+
+# ssh info
+logowanie

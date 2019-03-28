@@ -27,7 +27,7 @@ __global__ void mul(int *m, int *v, int *res, size_t l) {
     }
 }
 
-__global__ void gen_numbers(int *m, int *v, size_t l) {
+__global__ void gen_input(int *m, int *v, size_t l) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int step = gridDim.x * blockDim.x;
     int k;
@@ -72,12 +72,7 @@ int main() {
 
     add_vec<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  
-    print_numbers<<<2, 10, 0>>>(res_gpu, l);
-
-    status = cudaMemcpy(res_cpu, res_gpu, sizeof(int) * LEN * LEN, cudaMemcpyDeviceToHost);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
+    print_numbers<<<2, 10, 0>>>(res_gpu, LEN);
 
     status = cudaFree(m_gpu);
     if (status != cudaSuccess) {

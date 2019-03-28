@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define LEN 10
+#define LEN 1000000
 
 __global__ void add_vec(int *v1, int *v2, int *res, size_t l) {
     // cudaError_t status;
@@ -21,8 +21,8 @@ __global__ void add_vec(int *v1, int *v2, int *res, size_t l) {
 int main() {
     int *v1_cpu, *v2_cpu, *res_cpu;
 
-    v1_cpu = calloc(sizeof(int), LEN);
-    v2_cpu = calloc(sizeof(int), LEN);
+    v1_cpu = (int*)calloc(LEN, sizeof(int));
+    v2_cpu = (int*)calloc(LEN, sizeof(int));
 
     for (int i = 0; i < LEN; i++) {
 	    v1_cpu[i] = i;
@@ -59,7 +59,7 @@ int main() {
 
     add_vec<<<2, 10, 0>>>(v1_gpu, v2_gpu, res_gpu, LEN);
 
-    res_cpu = calloc(sizeof(int), LEN);
+    res_cpu = (int*)calloc(sizeof(int), LEN);
  
     status = cudaMemcpy(res_cpu, res_gpu, sizeof(int) * LEN, cudaMemcpyDeviceToHost);
     if (status != cudaSuccess) {

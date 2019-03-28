@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define LEN 10
+#define LEN 1000000
 
 __global__ void add_vec(int *v1, int *v2, int *res, size_t l) {
     // cudaError_t status;

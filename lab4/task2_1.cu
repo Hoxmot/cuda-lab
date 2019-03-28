@@ -6,18 +6,6 @@ using namespace std;
 
 #define LEN 10
 
-__global__ void add_vec(int *v1, int *v2, int *res, size_t l) {
-    // cudaError_t status;
-
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int step = gridDim.x * blockDim.x;
-
-    for (; i < l; i+= step) {
-	    res[i] = v1[i] + v2[i];
-    }
-
-}
-
 __global__ void mul(int *m, int *v, int *res, size_t l) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int step = gridDim.x * blockDim.x;
@@ -69,7 +57,7 @@ int main() {
     free(m_cpu);
     free(v_cpu);
 
-    add_vec<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
+    mul<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  
     res_cpu = (int*) calloc(LEN * LEN, sizeof(int));
 

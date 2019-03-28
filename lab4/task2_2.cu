@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cuda_runtime_api.h>
+#include <stdio.h>
 
 using namespace std;
 

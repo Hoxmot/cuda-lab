@@ -29,13 +29,20 @@ __global__ void gen_input(int *m, int *v, size_t l) {
     }
 }
 
-__global__ void print_numbers(int *res, size_t l) {
+__global__ void print_numbers(int *res, size_t l, int dim) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int step = gridDim.x * blockDim.x;
-    for (; i < l * l; i += step) {
-        printf("%d ", res[i]);
-        if (i % l == l - 1) {
-            printf("\n");
+    if (dim == 2) {
+        for (; i < l * l; i += step) {
+            printf("%d ", res[i]);
+            if (i % l == l - 1) {
+                printf("\n");
+            }
+        }
+    }
+    if (dim == 1) {
+        for (; i < l; i += step) {
+            printf("%d ", res[i]);
         }
     }
 }
@@ -58,6 +65,11 @@ int main() {
     }
 
     gen_input<<<2, 10, 0>>>(m_gpu, v_gpu, LEN);
+
+    print_numbers<<<2, 10, 0>>>(m_gpu, LEN);
+    printf("\n\n");
+    print_numbers<<<2, 10, 0>>>(v_gpu, LEN);
+    printf("\n\n");
 
     mul<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  

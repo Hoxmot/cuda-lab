@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cuda_runtime_api.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -18,7 +19,10 @@ __global__ void add_vec(int *v1, int *v2, int *res, size_t l) {
 }
 
 int main() {
-    int v1_cpu[LEN], v2_cpu[LEN], res_cpu[LEN];
+    int *v1_cpu, *v2_cpu, *res_cpu;
+
+    v1_cpu = calloc(sizeof(int), LEN);
+    v2_cpu = calloc(sizeof(int), LEN);
 
     for (int i = 0; i < LEN; i++) {
 	    v1_cpu[i] = i;
@@ -50,7 +54,12 @@ int main() {
 	    cout << cudaGetErrorString(status) << endl;
     }
 
+    free(v1_cpu);
+    free(v2_cpu);
+
     add_vec<<<2, 10, 0>>>(v1_gpu, v2_gpu, res_gpu, LEN);
+
+    res_cpu = calloc(sizeof(int), LEN);
  
     status = cudaMemcpy(res_cpu, res_gpu, sizeof(int) * LEN, cudaMemcpyDeviceToHost);
     if (status != cudaSuccess) {
@@ -69,6 +78,8 @@ int main() {
     if (status != cudaSuccess) {
 	    cout << cudaGetErrorString(status) << endl;
     }
+
+    free(res_cpu);
 
     return 0;
 

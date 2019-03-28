@@ -66,15 +66,8 @@ int main() {
 
     gen_input<<<2, 10, 0>>>(m_gpu, v_gpu, LEN);
 
-    print_numbers<<<2, 10, 0>>>(m_gpu, LEN);
-    printf("\n\n");
-    print_numbers<<<2, 10, 0>>>(v_gpu, LEN);
-    printf("\n\n");
-
     mul<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  
-    print_numbers<<<2, 10, 0>>>(res_gpu, LEN);
-
     status = cudaFree(m_gpu);
     if (status != cudaSuccess) {
 	    cout << cudaGetErrorString(status) << endl;

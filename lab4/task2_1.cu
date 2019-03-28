@@ -29,21 +29,6 @@ int main() {
 	    v_cpu[i] = i * 40 + 2;
     }
 
-    for (int i = 0; i < LEN; i++) {
-	    for (int k = 0; k < LEN; k++) {
-	        cout << m_cpu[i * LEN + k] << " ";
-	    }
-	    cout << endl;
-    }
-
-    cout << endl;
-
-    for (int i = 0; i < LEN; i++) {
-	    cout << v_cpu[i] << " ";
-    }
-
-    cout << endl;
-
     cudaError_t status;
     int *m_gpu, *v_gpu, *res_gpu;
 
@@ -92,13 +77,6 @@ int main() {
     status = cudaFree(res_gpu);
     if (status != cudaSuccess) {
 	    cout << cudaGetErrorString(status) << endl;
-    }
-
-    for (int i = 0; i < LEN; i++) {
-	    for (int k = 0; k < LEN; k++) {
-	        cout << res_cpu[i * LEN + k] << " ";
-	    }
-	    cout << endl;
     }
 
     free(res_cpu);

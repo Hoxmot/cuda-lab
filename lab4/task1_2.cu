@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define LEN 1000000
+#define LEN 100000000
 
 __global__ void add_vec(int *v1, int *v2, int *res, size_t l) {
     // cudaError_t status;
@@ -46,9 +46,9 @@ int main() {
 	    cout << cudaGetErrorString(status) << endl;
     }
 
-    gen_numbers<<<2, 10, 0>>>(v1_gpu, v2_gpu, LEN);
+    gen_numbers<<<2, 32, 0>>>(v1_gpu, v2_gpu, LEN);
 
-    add_vec<<<2, 10, 0>>>(v1_gpu, v2_gpu, res_gpu, LEN);
+    add_vec<<<2, 32, 0>>>(v1_gpu, v2_gpu, res_gpu, LEN);
 
     status = cudaFree(v1_gpu);
     if (status != cudaSuccess) {

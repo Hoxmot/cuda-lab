@@ -57,7 +57,7 @@ int main() {
     free(m_cpu);
     free(v_cpu);
 
-    mul<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
+    mul<<<2, 32, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  
     res_cpu = (int*) calloc(LEN * LEN, sizeof(int));
 

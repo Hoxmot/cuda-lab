@@ -64,9 +64,9 @@ int main() {
 	    cout << cudaGetErrorString(status) << endl;
     }
 
-    gen_input<<<2, 10, 0>>>(m_gpu, v_gpu, LEN);
+    gen_input<<<2, 32, 0>>>(m_gpu, v_gpu, LEN);
 
-    mul<<<2, 10, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
+    mul<<<2, 32, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  
     status = cudaFree(m_gpu);
     if (status != cudaSuccess) {

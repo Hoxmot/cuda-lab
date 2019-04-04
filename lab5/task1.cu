@@ -1,114 +1,147 @@
+/*
+  source:
+  https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory
+*/
+
 #include <iostream>
 #include <cuda_runtime_api.h>
 #include <stdlib.h>
 
+#include "../tools/handlers.h"
+
 #define LEN 2
+#define BLOCK_SIZE 16
 
 using namespace std;
 
-__global__ void matrix_mul(double *m1, double *m2, double *m3, size_t len) {
+typedef struct {
+    int width;
+    int height;
+    int stride;
+    double *elements;
+} Matrix;
 
-    //__shared__ double shm[];
-
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int step = gridDim.x * blockDim.x;
-
-    for (; i < len; i += step) {
-        for (int k = 0; k < len; k++) {
-            m3[i * LEN + k] = 0;
-            for (int j = 0; j < len; j++) {
-                m3[i * LEN + k] += m1[i * LEN + j] * m2[j * LEN + k];
-            }
-        }
-    }
+__device__ double get_element(const Matrix *M, int row, int col) {
+    return M->elements[row * M.stride + col];
 }
 
+__device__ void set_element(Matrix *M, int row, int col,
+                            double value) {
+    M->elements[row * M.stride + col] = value;
+}
+
+__device__ Matrix get_sub_matrix(Matrix *M, int row, int col) {
+    Matrix Msub;
+    Msub.width = BLOCK_SIZE;
+    Msub.height = BLOCK_SIZE;
+    Msub.stride = M->stride;
+    Msub.elements = &M->elements[M->stride * BLOCK_SIZE * row
+                                + BLOCK_SIZE * col];
+    return Msub;
+}
+
+__global__ void matrix_mul(const Matrix *A, const Matrix *B, Matrix *C) {
+    int blockRow = blockIdx.y;
+    int blockCol = blockIdx.x;
+
+    Matrix Csub = get_sub_matrix(C, blockRow, blockCol);
+
+    double c_value = 0;
+
+    int row = threadIdx.y;
+    int col = threadIdx.x;
+
+    for (int m = 0; m < (A->width / BLOCK_SIZE); ++m) {
+
+        Matrix Asub = get_sub_matrix(A, blockRow, m);
+        Matrxi Bsub = get_sub_matrix(B, m, blockCol);
+
+        __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
+        __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
+
+        As[row][col] = get_element(Asub, row, col);
+        Bs[row][col] = get_element(Bsub, row, col);
+
+        __synchthreads();
+
+        for (int e = 0; e < BLOCK_SIZE; ++e)
+            c_value += As[row][e] * Bs[e][col];
+
+        __synchthreads();
+    }
+
+    set_element(Csub, row, col, c_value);
+
+}
+
+void matrix_mul_cpu(const Matrix *M1, const Matrix *M2, Matrix *M3) {
+    Matrix M1_gpu, M2_gpu, M3_gpu;
+
+    M1_gpu.width = M1_gpu.stride = M1->width;
+    M1_gpu.height = M1->height;
+    ssize_t size = M1->width * M1->height * sizeof(double);
+    handleCudaMalloc(&M1_gpu.elements, size);
+    handleCudaMemcpy(M1_gpu.elements, M1->elements, size, cudaMemcpyHostToDevice);
+
+    M2_gpu.width = M2_gpu.stride = M2->stride;
+    M2_gpu.height = M2->height;
+    size = M2->width * M2->height * sizeof(double);
+    handleCudaMalloc(&M2_gpu.elements, size);
+    handleCudaMemcpy(M2_gpu.elements, M2->elements, size, cudaMemcpyHostToDevice);
+
+    M3_gpu.width = M3_gpu.stride = M3->stride;
+    M3_gpu.height = M3->height;
+    size = M3->height * M3->width * sizeof(double);
+    handleCudaMalloc(&M3.elements, size);
+
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 dimGrid(M2->width / dimBlock.x, M1->height / dimBlock.y);
+    matrix_mul<<<dimGrid, dimBlock>>>(M1_gpu, M2_gpu, M3_gpu);
+
+    handleCudaMemcpy(C->elements, M3_gpu.elements, size, cudaMemcpyDeviceToHost);
+
+    handleCudaFree(M1_gpu.elements);
+    handleCudaFree(M2_gpu.elements);
+    handleCudaFree(M3_gpu.elements);
+}
 
 int main() {
 
-    double *m1_cpu, *m2_cpu, *res_cpu;
+    Matrix *M1_cpu, *M2_cpu, *ResCpu;
+    
+    M1_cpu = malloc(sizeof(Matrix));
+    M1_cpu->stride = M1_cpu->height = M1->width = LEN;
+    M1_cpu->elements = (double*)calloc(LEN * LEN, sizeof(double));
 
-    cudaError_t status;
-    double *m1_gpu, *m2_gpu, *res_gpu;
-
-    m1_cpu = (double*)calloc(LEN * LEN, sizeof(double));
-    m2_cpu = (double*)calloc(LEN * LEN, sizeof(double));
+    M2_cpu = malloc(sizeof(Matrix));
+    M2_cpu->stride = M2_cpu->width = M2_cpu->height = LEN; 
+    M2_cpu->elements = (double*)calloc(LEN * LEN, sizeof(double));
 
     for (int i = 0; i < LEN; i++) {
         for (int k = 0; k < LEN; k++) {
-            m1_cpu[i * LEN + k] = (i + k) + 7;
-            m2_cpu[i * LEN + k] = (i + k) + 3;
+            M1_cpu->elements[i * LEN + k] = (i + k) + 7;
+            M2_cpu->elements[i * LEN + k] = (i + k) + 3;
         }
     }
 
-    for (int i = 0; i < LEN * LEN; i++) {
-        cout << m1_cpu[i] << " ";
-        if (i % LEN == LEN - 1)
-            cout << endl;
-    }
-    cout << endl;
+    ResCpu = malloc(sizeof(Matrix));
+    ResCpu->height = ResCpu->stride = ResCpu->width = LEN;
+    ResCpu->elements = (double*)calloc(LEN * LEN, sizof(double));
+
+    matrix_mul_cpu(M1_cpu, M2_cpu, ResCpu);
 
     for (int i = 0; i < LEN * LEN; i++) {
-        cout << m2_cpu[i] << " ";
-        if (i % LEN == LEN - 1)
-            cout << endl;
-    }
-    cout << endl;
-
-    status = cudaMalloc((void**)&m1_gpu, sizeof(int) * LEN * LEN);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-    status = cudaMalloc((void**)&m2_gpu, sizeof(int) * LEN * LEN);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-    status = cudaMalloc((void**)&res_gpu, sizeof(int) * LEN * LEN);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-
-    status = cudaMemcpy(m1_gpu, m1_cpu, sizeof(int) * LEN * LEN, cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-    status = cudaMemcpy(m2_gpu, m2_cpu, sizeof(int) * LEN * LEN, cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-
-    free(m1_cpu);
-    free(m2_cpu);
-
-    matrix_mul<<<2,2>>>(m1_gpu, m2_gpu, res_gpu, LEN);
-
-    res_cpu = (double*)calloc(LEN * LEN, sizeof(double));
-
-    status = cudaMemcpy(res_cpu, res_gpu, sizeof(int) * LEN * LEN, cudaMemcpyDeviceToHost);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-
-    status = cudaFree(m1_gpu);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-    status = cudaFree(m2_gpu);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-    status = cudaFree(res_gpu);
-    if (status != cudaSuccess) {
-	    cout << cudaGetErrorString(status) << endl;
-    }
-
-    for (int i = 0; i < LEN * LEN; i++) {
-        cout << res_cpu[i] << " ";
+        cout << ResCpu->elements[i] << " ";
         if (i % LEN == LEN - 1)
             cout << endl;
     }
 
-    free(res_cpu);
+    free(M1_cpu->elements);
+    free(M1_cpu);
+    free(M2_cpu->elements);
+    free(M2_cpu);
+    free(ResCpu->elements)
+    free(ResCpu);
 
     return 0;
 

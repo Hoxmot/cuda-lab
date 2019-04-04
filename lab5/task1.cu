@@ -9,7 +9,6 @@
 
 #include "../tools/handlers.h"
 
-#define LEN 2
 #define BLOCK_SIZE 16
 
 using namespace std;
@@ -54,7 +53,7 @@ __global__ void matrix_mul(const Matrix A, const Matrix B, Matrix C) {
     for (int m = 0; m < (A.width / BLOCK_SIZE); ++m) {
 
         Matrix Asub = get_sub_matrix(A, blockRow, m);
-        Matrxi Bsub = get_sub_matrix(B, m, blockCol);
+        Matrix Bsub = get_sub_matrix(B, m, blockCol);
 
         __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];

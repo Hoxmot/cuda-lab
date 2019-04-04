@@ -21,26 +21,26 @@ typedef struct {
     double *elements;
 } Matrix;
 
-__device__ double get_element(const Matrix *M, int row, int col) {
-    return M->elements[row * M.stride + col];
+__device__ double get_element(const Matrix M, int row, int col) {
+    return M.elements[row * M.stride + col];
 }
 
-__device__ void set_element(Matrix *M, int row, int col,
+__device__ void set_element(Matrix M, int row, int col,
                             double value) {
-    M->elements[row * M.stride + col] = value;
+    M.elements[row * M.stride + col] = value;
 }
 
-__device__ Matrix get_sub_matrix(Matrix *M, int row, int col) {
+__device__ Matrix get_sub_matrix(Matrix M, int row, int col) {
     Matrix Msub;
     Msub.width = BLOCK_SIZE;
     Msub.height = BLOCK_SIZE;
-    Msub.stride = M->stride;
-    Msub.elements = &M->elements[M->stride * BLOCK_SIZE * row
+    Msub.stride = M.stride;
+    Msub.elements = &M.elements[M.stride * BLOCK_SIZE * row
                                 + BLOCK_SIZE * col];
     return Msub;
 }
 
-__global__ void matrix_mul(const Matrix *A, const Matrix *B, Matrix *C) {
+__global__ void matrix_mul(const Matrix A, const Matrix B, Matrix C) {
     int blockRow = blockIdx.y;
     int blockCol = blockIdx.x;
 
@@ -51,7 +51,7 @@ __global__ void matrix_mul(const Matrix *A, const Matrix *B, Matrix *C) {
     int row = threadIdx.y;
     int col = threadIdx.x;
 
-    for (int m = 0; m < (A->width / BLOCK_SIZE); ++m) {
+    for (int m = 0; m < (A.width / BLOCK_SIZE); ++m) {
 
         Matrix Asub = get_sub_matrix(A, blockRow, m);
         Matrxi Bsub = get_sub_matrix(B, m, blockCol);
@@ -74,31 +74,31 @@ __global__ void matrix_mul(const Matrix *A, const Matrix *B, Matrix *C) {
 
 }
 
-void matrix_mul_cpu(const Matrix *M1, const Matrix *M2, Matrix *M3) {
+void matrix_mul_cpu(const Matrix M1, const Matrix M2, Matrix M3) {
     Matrix M1_gpu, M2_gpu, M3_gpu;
 
-    M1_gpu.width = M1_gpu.stride = M1->width;
-    M1_gpu.height = M1->height;
-    ssize_t size = M1->width * M1->height * sizeof(double);
+    M1_gpu.width = M1_gpu.stride = M1.width;
+    M1_gpu.height = M1.height;
+    ssize_t size = M1.width * M1.height * sizeof(double);
     handleCudaMalloc(&M1_gpu.elements, size);
-    handleCudaMemcpy(M1_gpu.elements, M1->elements, size, cudaMemcpyHostToDevice);
+    handleCudaMemcpy(M1_gpu.elements, M1.elements, size, cudaMemcpyHostToDevice);
 
-    M2_gpu.width = M2_gpu.stride = M2->stride;
-    M2_gpu.height = M2->height;
-    size = M2->width * M2->height * sizeof(double);
+    M2_gpu.width = M2_gpu.stride = M2.stride;
+    M2_gpu.height = M2.height;
+    size = M2.width * M2.height * sizeof(double);
     handleCudaMalloc(&M2_gpu.elements, size);
-    handleCudaMemcpy(M2_gpu.elements, M2->elements, size, cudaMemcpyHostToDevice);
+    handleCudaMemcpy(M2_gpu.elements, M2.elements, size, cudaMemcpyHostToDevice);
 
-    M3_gpu.width = M3_gpu.stride = M3->stride;
-    M3_gpu.height = M3->height;
-    size = M3->height * M3->width * sizeof(double);
+    M3_gpu.width = M3_gpu.stride = M3.stride;
+    M3_gpu.height = M3.height;
+    size = M3.height * M3.width * sizeof(double);
     handleCudaMalloc(&M3.elements, size);
 
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 dimGrid(M2->width / dimBlock.x, M1->height / dimBlock.y);
+    dim3 dimGrid(M2.width / dimBlock.x, M1.height / dimBlock.y);
     matrix_mul<<<dimGrid, dimBlock>>>(M1_gpu, M2_gpu, M3_gpu);
 
-    handleCudaMemcpy(C->elements, M3_gpu.elements, size, cudaMemcpyDeviceToHost);
+    handleCudaMemcpy(M3.elements, M3_gpu.elements, size, cudaMemcpyDeviceToHost);
 
     handleCudaFree(M1_gpu.elements);
     handleCudaFree(M2_gpu.elements);
@@ -107,41 +107,35 @@ void matrix_mul_cpu(const Matrix *M1, const Matrix *M2, Matrix *M3) {
 
 int main() {
 
-    Matrix *M1_cpu, *M2_cpu, *ResCpu;
+    Matrix M1_cpu, M2_cpu, ResCpu;
     
-    M1_cpu = malloc(sizeof(Matrix));
-    M1_cpu->stride = M1_cpu->height = M1->width = LEN;
-    M1_cpu->elements = (double*)calloc(LEN * LEN, sizeof(double));
+    M1_cpu.stride = M1_cpu.height = M1_cpu.width = LEN;
+    M1_cpu.elements = (double*)calloc(LEN * LEN, sizeof(double));
 
-    M2_cpu = malloc(sizeof(Matrix));
-    M2_cpu->stride = M2_cpu->width = M2_cpu->height = LEN; 
-    M2_cpu->elements = (double*)calloc(LEN * LEN, sizeof(double));
+    M2_cpu.stride = M2_cpu.width = M2_cpu.height = LEN; 
+    M2_cpu.elements = (double*)calloc(LEN * LEN, sizeof(double));
 
     for (int i = 0; i < LEN; i++) {
         for (int k = 0; k < LEN; k++) {
-            M1_cpu->elements[i * LEN + k] = (i + k) + 7;
-            M2_cpu->elements[i * LEN + k] = (i + k) + 3;
+            M1_cpu.elements[i * LEN + k] = (i + k) + 7;
+            M2_cpu.elements[i * LEN + k] = (i + k) + 3;
         }
     }
 
-    ResCpu = malloc(sizeof(Matrix));
-    ResCpu->height = ResCpu->stride = ResCpu->width = LEN;
-    ResCpu->elements = (double*)calloc(LEN * LEN, sizof(double));
+    ResCpu.height = ResCpu.stride = ResCpu.width = LEN;
+    ResCpu.elements = (double*)calloc(LEN * LEN, sizof(double));
 
     matrix_mul_cpu(M1_cpu, M2_cpu, ResCpu);
 
     for (int i = 0; i < LEN * LEN; i++) {
-        cout << ResCpu->elements[i] << " ";
+        cout << ResCpu.elements[i] << " ";
         if (i % LEN == LEN - 1)
             cout << endl;
     }
 
-    free(M1_cpu->elements);
-    free(M1_cpu);
-    free(M2_cpu->elements);
-    free(M2_cpu);
-    free(ResCpu->elements)
-    free(ResCpu);
+    free(M1_cpu.elements);
+    free(M2_cpu.elements);
+    free(ResCpu.elements);
 
     return 0;
 

@@ -62,12 +62,12 @@ __global__ void matrix_mul(const Matrix A, const Matrix B, Matrix C) {
         As[row][col] = get_element(Asub, row, col);
         Bs[row][col] = get_element(Bsub, row, col);
 
-        __synchthreads();
+        __syncthreads();
 
         for (int e = 0; e < BLOCK_SIZE; ++e)
             c_value += As[row][e] * Bs[e][col];
 
-        __synchthreads();
+        __syncthreads();
     }
 
     set_element(Csub, row, col, c_value);
@@ -80,19 +80,19 @@ void matrix_mul_cpu(const Matrix M1, const Matrix M2, Matrix M3) {
     M1_gpu.width = M1_gpu.stride = M1.width;
     M1_gpu.height = M1.height;
     ssize_t size = M1.width * M1.height * sizeof(double);
-    handleCudaMalloc(&M1_gpu.elements, size);
+    handleCudaMalloc((void**)&M1_gpu.elements, size);
     handleCudaMemcpy(M1_gpu.elements, M1.elements, size, cudaMemcpyHostToDevice);
 
     M2_gpu.width = M2_gpu.stride = M2.stride;
     M2_gpu.height = M2.height;
     size = M2.width * M2.height * sizeof(double);
-    handleCudaMalloc(&M2_gpu.elements, size);
+    handleCudaMalloc((void**)&M2_gpu.elements, size);
     handleCudaMemcpy(M2_gpu.elements, M2.elements, size, cudaMemcpyHostToDevice);
 
     M3_gpu.width = M3_gpu.stride = M3.stride;
     M3_gpu.height = M3.height;
     size = M3.height * M3.width * sizeof(double);
-    handleCudaMalloc(&M3.elements, size);
+    handleCudaMalloc((void**)&M3.elements, size);
 
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 dimGrid(M2.width / dimBlock.x, M1.height / dimBlock.y);
@@ -123,7 +123,7 @@ int main() {
     }
 
     ResCpu.height = ResCpu.stride = ResCpu.width = LEN;
-    ResCpu.elements = (double*)calloc(LEN * LEN, sizof(double));
+    ResCpu.elements = (double*)calloc(LEN * LEN, sizeof(double));
 
     matrix_mul_cpu(M1_cpu, M2_cpu, ResCpu);
 

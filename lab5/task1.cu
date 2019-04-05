@@ -10,6 +10,7 @@
 #include "../tools/handlers.h"
 
 #define BLOCK_SIZE 16
+#define LEN 32
 
 using namespace std;
 

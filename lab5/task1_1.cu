@@ -10,8 +10,8 @@
 using namespace std;
 
 // Thread block size
-#define BLOCK_SIZE 16
-#define LEN 32
+#define BLOCK_SIZE 32
+#define LEN 8192
 
 // Matrices are stored in row-major order:
 // M(row, col) = *(M.elements + row * M.stride + col)
@@ -172,11 +172,13 @@ int main() {
 
     MatMul(M1_cpu, M2_cpu, ResCpu);
 
+    /*
     for (int i = 0; i < LEN * LEN; i++) {
         cout << ResCpu.elements[i] << " ";
         if (i % LEN == LEN - 1)
             cout << endl;
     }
+    */
 
     free(M1_cpu.elements);
     free(M2_cpu.elements);

@@ -33,5 +33,22 @@ int main () {
     // call reduce
     reduce<<<>>>(data_cpu, ret_cpu);
 
+    status = cudaFree(data_gpu);
+    if (status != cudaSuccess) {
+        printf("%s\n", cudaGetErrorString(status));
+    }
+
+    status = cudaMemcpy(ret_cpu, ret_gpu, sizeof(int), cudaMemcpyDeviceToHost);
+    if (status != cudaSuccess) {
+        printf("%s\n", cudaGetErrorString(status));
+    }
+
+    status = cudaFree(ret_gpu);
+    if (status != cudaSuccess) {
+        printf("%s\n", cudaGetErrorString(status));
+    }
+
+
+
     return 0;
 }

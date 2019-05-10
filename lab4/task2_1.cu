@@ -4,7 +4,17 @@
 
 using namespace std;
 
-#define LEN 10
+#ifndef LEN
+#error LEN is not defined
+#endif
+
+#ifndef THREADS
+#error THREADS is not defined
+#endif
+
+#ifndef BLOCKS
+#error BLOCKS is not defined
+#endif
 
 __global__ void mul(int *m, int *v, int *res, size_t l) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -57,7 +67,7 @@ int main() {
     free(m_cpu);
     free(v_cpu);
 
-    mul<<<2, 32, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
+    mul<<<BLOCKS, THREADS, 0>>>(m_gpu, v_gpu, res_gpu, LEN);
  
     res_cpu = (int*) calloc(LEN * LEN, sizeof(int));
 

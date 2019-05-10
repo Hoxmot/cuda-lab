@@ -59,7 +59,7 @@ __global__ void matrix_mul(const Matrix A, const Matrix B, Matrix C) {
         Matrix Bsub = get_sub_matrix(B, m, blockCol);
 
         for (int e = 0; e < BLOCK_SIZE; ++e)
-            c_value += Asub[row * Asub.stride + e] * Bsub[e * Bsub.stride + col];
+            c_value += Asub.elements[row * Asub.stride + e] * Bsub.elements[e * Bsub.stride + col];
 
     }
 

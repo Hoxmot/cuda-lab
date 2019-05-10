@@ -33,7 +33,7 @@ touch result3_3
 for i in 32 64 96 128 256 1024 2048 4096 8192 10240 ; do
     echo "cpu, len: $i"
     echo $i >>result3_3
-    nvcc -DLEN=$i -o task3 task3.cu
+    gcc -O2 -Wall -Wextra -DLEN=$i -o task3 task3.cu
     { time ./task3; } 2>>result3_3
     echo "--------------------------------------------------" >>result3_3
 done

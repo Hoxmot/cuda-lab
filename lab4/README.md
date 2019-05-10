@@ -87,7 +87,7 @@ Time of execution to threads per block (%32)
 * x -> threads per block (%32)
 * y -> time of execution
 
-* Length of vector: 100000000
+* Length of vector: 10000
 * Blocks: 2
 
 #### Test 2.3
@@ -101,7 +101,7 @@ Time of execution to threads per block (%10)
 * x -> threads per block (%10)
 * y -> time of execution
 
-* Length of vector: 100000000
+* Length of vector: 10000
 * Blocks: 2
 
 #### Test 2.4
@@ -115,5 +115,5 @@ Time of execution to number of blocks
 * x -> number of blocks
 * y -> time of execution
 
-* Length of vector: 100000000
+* Length of vector: 10000
 * Threads per block: 32

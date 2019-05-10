@@ -27,8 +27,8 @@ for i in 32 64 96 128 160 192 224 256 288 320 352 384 416 448 480 512; do
     echo "Threads per block: $i"
     echo $i >>result2_2
     echo "" >>result2_2
-    nvcc -DLEN=100000000 -DBLOCKS=2 -DTHREADS=$i -o task2_1 task2_1.cu
-    nvcc -DLEN=100000000 -DBLOCKS=2 -DTHREADS=$i -o task2_2 task2_2.cu
+    nvcc -DLEN=10000 -DBLOCKS=2 -DTHREADS=$i -o task2_1 task2_1.cu
+    nvcc -DLEN=10000 -DBLOCKS=2 -DTHREADS=$i -o task2_2 task2_2.cu
     { time ./task2_1; } 2>>result2_2
     { time ./task2_2; } 2>>result2_2
     echo "" >>result2_2
@@ -44,8 +44,8 @@ for i in 30 60 100 130 190 220 260 300 350 380 420 450 510; do
     echo "Threads per block: $i"
     echo $i >>result2_3
     echo "" >>result2_3
-    nvcc -DLEN=100000000 -DBLOCKS=2 -DTHREADS=$i -o task2_1 task2_1.cu
-    nvcc -DLEN=100000000 -DBLOCKS=2 -DTHREADS=$i -o task2_2 task2_2.cu
+    nvcc -DLEN=10000 -DBLOCKS=2 -DTHREADS=$i -o task2_1 task2_1.cu
+    nvcc -DLEN=10000 -DBLOCKS=2 -DTHREADS=$i -o task2_2 task2_2.cu
     { time ./task2_1; } 2>>result2_3
     { time ./task2_2; } 2>>result2_3
     echo "" >>result2_3
@@ -61,8 +61,8 @@ for i in 2 4 8 16 32 64 96 128 150 200 256 300 400 512; do
     echo "Number of blocks: $i"
     echo $i >>result2_4
     echo "" >>result2_4
-    nvcc -DLEN=100000000 -DBLOCKS=$i -DTHREADS=32 -o task2_1 task2_1.cu
-    nvcc -DLEN=100000000 -DBLOCKS=$i -DTHREADS=32 -o task2_2 task2_2.cu
+    nvcc -DLEN=10000 -DBLOCKS=$i -DTHREADS=32 -o task2_1 task2_1.cu
+    nvcc -DLEN=10000 -DBLOCKS=$i -DTHREADS=32 -o task2_2 task2_2.cu
     { time ./task2_1; } 2>>result2_4
     { time ./task2_2; } 2>>result2_4
     echo "" >>result2_4

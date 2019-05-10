@@ -26,14 +26,14 @@ for i in 32 64 96 128 256 1024 2048 4096 8192 10240 ; do
     echo "--------------------------------------------------" >>result3_2
 done
 
-echo "Test 1/3"
+echo "Test 3/3"
 echo "" >result3_3
 rm result3_3
 touch result3_3
 for i in 32 64 96 128 256 1024 2048 4096 8192 10240 ; do
     echo "cpu, len: $i"
     echo $i >>result3_3
-    gcc -O2 -Wall -Wextra -DLEN=$i -o task3 task3.c
+    gcc -std=c99 -O2 -Wall -Wextra -DLEN=$i -o task3 task3.c
     { time ./task3; } 2>>result3_3
     echo "--------------------------------------------------" >>result3_3
 done

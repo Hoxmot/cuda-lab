@@ -9,7 +9,7 @@ Repository containing my code written for cuda classes at University of Warsaw
 | Number | Lab  | Done               |
 |:------:|:----:|:------------------:|
 | 1      | lab4 | :heavy_check_mark: |
-| 2      | lab4 |                    |
+| 2      | lab4 | :heavy_check_mark: |
 | 3      | lab5 |                    |
 | 4      | lab6 |                    |
 | 5      | lab7 |                    |

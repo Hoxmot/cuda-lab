@@ -32,28 +32,28 @@ void matrix_mul(const Matrix A, const Matrix B, Matrix C) {
 
 int main() {
 
-    Matrix M1_cpu, M2_cpu, ResCpu;
+    Matrix M1, M2, ResCpu;
     
-    M1_cpu.stride = M1_cpu.height = M1_cpu.width = LEN;
-    M1_cpu.elements = (double*)calloc(LEN * LEN, sizeof(double));
+    M1.stride = M1.height = M1.width = LEN;
+    M1.elements = (double*)calloc(LEN * LEN, sizeof(double));
 
-    M2_cpu.stride = M2_cpu.width = M2_cpu.height = LEN; 
-    M2_cpu.elements = (double*)calloc(LEN * LEN, sizeof(double));
+    M2.stride = M2.width = M2.height = LEN; 
+    M2.elements = (double*)calloc(LEN * LEN, sizeof(double));
 
     for (int i = 0; i < LEN; i++) {
         for (int k = 0; k < LEN; k++) {
-            M1_cpu.elements[i * LEN + k] = (i + k) + 7;
-            M2_cpu.elements[i * LEN + k] = (i + k) + 3;
+            M1.elements[i * LEN + k] = (i + k) + 7;
+            M2.elements[i * LEN + k] = (i + k) + 3;
         }
     }
 
     ResCpu.height = ResCpu.stride = ResCpu.width = LEN;
     ResCpu.elements = (double*)calloc(LEN * LEN, sizeof(double));
 
-    matrix_mul_cpu(M1_cpu, M2_cpu, ResCpu);
+    matrix_mul(M1, M2, ResCpu);
 
-    free(M1_cpu.elements);
-    free(M2_cpu.elements);
+    free(M1.elements);
+    free(M2.elements);
     free(ResCpu.elements);
 
     return 0;

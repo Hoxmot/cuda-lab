@@ -30,7 +30,7 @@ int main () {
         printf("%s\n", cudaGetErrorString(status));
     }
 
-    // call reduce
+    // TODO: call reduce
     reduce<<<>>>(data_cpu, ret_cpu);
 
     status = cudaFree(data_gpu);

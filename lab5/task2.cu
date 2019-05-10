@@ -1,5 +1,5 @@
 /*
-  source:
+  modified from source:
   https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory
 */
 
@@ -58,46 +58,13 @@ __global__ void matrix_mul(const Matrix A, const Matrix B, Matrix C) {
         Matrix Asub = get_sub_matrix(A, blockRow, m);
         Matrix Bsub = get_sub_matrix(B, m, blockCol);
 
-        __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
-        __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
-
-        As[row][col] = get_element(Asub, row, col);
-        Bs[row][col] = get_element(Bsub, row, col);
-
-        __syncthreads();
-
         for (int e = 0; e < BLOCK_SIZE; ++e)
-            c_value += As[row][e] * Bs[e][col];
+            c_value += Asub[row][e] * Bsub[e][col];
 
-        __syncthreads();
     }
 
     set_element(Csub, row, col, c_value);
 
-}
-
-void handleCudaMalloc(void **var, ssize_t size) {
-    cudaError_t status;
-    status = cudaMalloc(var, size);
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-}
-
-void handleCudaMemcpy(void* dst, const void* src, ssize_t size, cudaMemcpyKind kind) {
-    cudaError_t status;
-    status = cudaMemcpy(dst, src, size, kind);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
-}
-
-void handleCudaFree(void* pointer) {
-    cudaError_t status;
-    status = cudaFree(pointer);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
 }
 
 void matrix_mul_cpu(const Matrix M1, const Matrix M2, Matrix M3) {

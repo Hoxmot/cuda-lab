@@ -13,6 +13,10 @@ using namespace std;
 #define BLOCK_SIZE 32
 #define LEN 8192
 
+#ifndef LEN
+#error LEN is not defined
+#endif
+
 // Matrices are stored in row-major order:
 // M(row, col) = *(M.elements + row * M.stride + col)
 typedef struct {

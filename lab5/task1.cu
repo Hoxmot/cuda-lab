@@ -10,6 +10,8 @@
 
 #define BLOCK_SIZE 32
 
+#define LEN 8192
+
 #ifndef LEN
 #error LEN is not defined
 #endif

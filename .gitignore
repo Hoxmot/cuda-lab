@@ -4,3 +4,7 @@
 
 # ssh info
 logowanie
+
+# junk vim files
+*~
+gmon.out

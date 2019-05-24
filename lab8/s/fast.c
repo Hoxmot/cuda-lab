@@ -5,15 +5,21 @@
 #define M 100
 #define N 100
 
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 double error(double err, double A, double B)
 {
 	double pom;
-	pom = A - B;
-	if (pom < 0)
+	pom = abs(A - B);
+	/*
+    if (pom < 0)
 		pom = -pom;
+    
 	if (err > pom)
 		return err;
 	return pom;
+    */
+    return max(pom, err);
 }
 
 void startA (int m, int n, double** A){
@@ -34,14 +40,15 @@ void makeMV(int n, int m, double** A, double** ANEW, double* err){
 		for (j=1; j<n-1; j++){
 			ANEW[j][i] = (A[j][i+1] + A[j][i-1] + A[j-1][i] + A[j+1][i]) * 0.25;
             double pom = abs(A[j][i] - ANEW[j][i]);
-			*err = *err > pom ? *err : pom;
+			//*err = *err > pom ? *err : pom;
+            *err = error(*err, A[j][i], ANEW[j][i]);
 		}
 }
 
 void copy(int n, int m, double** A, double** ANEW){
 	int i, j;
-    for (i = 1; i < m-1; i++)
-		for (j = 1; j < n-1; j++)
+	for (j = 1; j < n-1; j++)
+        for (i = 1; i < m-1; i++)
 			A[j][i] = ANEW[j][i];
 }
 

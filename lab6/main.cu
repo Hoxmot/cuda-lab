@@ -5,6 +5,7 @@
 #include "limit.h"
 
 #define BLOCK_SIZE 512
+#define SIZE 262144
 
 int main () {
 
@@ -31,7 +32,7 @@ int main () {
     }
 
     // TODO: call reduce
-    reduce<<<>>>(data_cpu, ret_cpu);
+    reduce<<<SIZE / BLOCK_SIZE, BLOCK_SIZE>>>(data_cpu, ret_cpu);
 
     status = cudaFree(data_gpu);
     if (status != cudaSuccess) {
@@ -48,7 +49,9 @@ int main () {
         printf("%s\n", cudaGetErrorString(status));
     }
 
-
+    printf("%f\n", ret_cpu);
+    free(ret_cpu);
+    free(data_cpu);
 
     return 0;
 }

@@ -70,8 +70,15 @@ int main(int argc, char **argv) {
     int ITER = 2566;
 #endif /* PARAM */
 
-    //Zaalokuj tablicę do przechowywania wyniku
+    printf("X0 = %f\n", X0);
+    printf("Y0 = %f\n", Y0);
+    printf("X1 = %f\n", X1);
+    printf("Y1 = %f\n", Y1);
+    printf("POZ = %d\n", POZ);
+    printf("PION = %d\n", PION);
+    printf("ITER = %d\n", ITER);
 
+    //Zaalokuj tablicę do przechowywania wyniku
     int *Result;
     Result= (int*) malloc(sizeof(int)*POZ*PION);
 

@@ -155,8 +155,8 @@ int main(int argc, char **argv) {
 
 __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER, int* Mandel) {
     
-    double dX = (*X1 - *X0) / (*POZ - 1);
-    double dY = (*Y1 - *Y0) / (*PION - 1);
+    double dX = ((*X1) - (*X0)) / ((*POZ) - 1);
+    double dY = ((*Y1) - (*Y0)) / ((*PION) - 1);
     double tZx, tZy;
     int i;
 
@@ -173,7 +173,7 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
 //    __shared__ double x[BLOCK_SIZE][BLOCK_SIZE];
 //    __shared__ double y[BLOCK_SIZE][BLOCK_SIZE];
 
-    int poz = blockRow * BLOCK_SIZE  + row;
+    int poz = blockRow * BLOCK_SIZE + row;
     int pion = blockCol * BLOCK_SIZE + col;
     if (poz < *POZ && pion < *PION) {
         x = (*X0) + poz * dX;

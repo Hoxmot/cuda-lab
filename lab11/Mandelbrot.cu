@@ -13,7 +13,7 @@
 
 #define BLOCK_SIZE 32
 
-__global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER,int* Mandel);
+__global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER,int* Mandel);
 
 void handleCudaMalloc(void **var, ssize_t size) {
     cudaError_t status;
@@ -78,7 +78,6 @@ int main(int argc, char **argv) {
     int *Result_gpu;
     double *x0_gpu, *y0_gpu, *x1_gpu, *y1_gpu;
     int *poz_gpu, *pion_gpu, *iter_gpu;
-    cudeError_t status;
 
     // Result
     handleCudaMalloc((void**)&Result_gpu, sizeof(int) * POZ * PION);
@@ -118,7 +117,7 @@ int main(int argc, char **argv) {
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 dimGrid(POZ / dimBlock.x, PION / dimBlock.y);
     start=clock();
-    computeMandelbrot<<<dimGrid, dimBlock>>>(x0_gpu, y0_gpu, x1_gpu, y1_gpu, poz_gpu, pion_gpu, iter_gpu, Result_gpu);
+    cudaMandel<<<dimGrid, dimBlock>>>(x0_gpu, y0_gpu, x1_gpu, y1_gpu, poz_gpu, pion_gpu, iter_gpu, Result_gpu);
     __syncthreads();
     end=clock();
     
@@ -143,10 +142,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-__global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER, int* Mandel) {
+__global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER, int* Mandel) {
     
-    double dX = (&X1 - &X0) / (&POZ - 1);
-    double dY = (&Y1 - &Y0) / (&PION - 1);
+    double dX = (*X1 - *X0) / (*POZ - 1);
+    double dY = (*Y1 - *Y0) / (*PION - 1);
     double tZx, tZy;
     int i;
     int poz, pion;
@@ -159,17 +158,14 @@ __global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* P
     int row = threadIdx.y;
     int col = threadIdx.x;
 
-    int step = gridDim.x * blockDim.x;
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-
 //    __shared__ double Zx[BLOCK_SIZE][BLOCK_SIZE];
 //    __shared__ double Zy[BLOCK_SIZE][BLOCK_SIZE];
 //    __shared__ double x[BLOCK_SIZE][BLOCK_SIZE];
 //    __shared__ double y[BLOCK_SIZE][BLOCK_SIZE];
 
-    poz = blockRow * &POZ  + row;
-    pion = blockCol * &PION + col;
-    if (poz < &POZ && pion < &PION) {
+    poz = blockRow * (*POZ)  + row;
+    pion = blockCol * (*PION) + col;
+    if (poz < *POZ && pion < *PION) {
         x = &X0 + poz * dX;
         y = &Y0 + pion * dY;
         Zx = x;
@@ -184,7 +180,7 @@ __global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* P
             Zy = tZy;
             i++;
         }
-        Mandel[pion * &POZ + poz] = i;
+        Mandel[pion * (*POZ) + poz] = i;
     }
 }
 

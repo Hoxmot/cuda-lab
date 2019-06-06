@@ -180,7 +180,7 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
         while ((i < *ITER) &&
                 ((Zx * Zx + Zy * Zy) < 4) ) {
             
-            if (i = 0) {
+            if (i == 0) {
                 printf("%d x %d ; %d x %d\n", blockRow, blockCol, row, col);
             }
             tZx = Zx * Zx - Zy * Zy + x;

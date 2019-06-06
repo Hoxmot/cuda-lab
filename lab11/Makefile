@@ -15,4 +15,4 @@ cuda_main.o: Mandelbrot.cu Mandelbrot.h
 	nvcc -c -o cuda_main.o Mandelbrot.cu
 
 clean:
-	rm -f *.o main cuda_main *.ppm
+	rm -f *.o main cuda_main *.ppm *.txt

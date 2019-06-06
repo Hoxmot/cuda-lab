@@ -145,8 +145,8 @@ int main(int argc, char **argv) {
 
 __global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER, int* Mandel) {
     
-    double dX = (X1-X0) / (POZ-1);
-    double dY = (Y1-Y0) / (PION-1);
+    double dX = (&X1 - &X0) / (&POZ - 1);
+    double dY = (&Y1 - &Y0) / (&PION - 1);
     double tZx, tZy;
     int i;
     int poz, pion;
@@ -167,15 +167,15 @@ __global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* P
 //    __shared__ double x[BLOCK_SIZE][BLOCK_SIZE];
 //    __shared__ double y[BLOCK_SIZE][BLOCK_SIZE];
 
-    poz = blockRow * POZ  + row;
-    pion = blockCol * PION + col;
-    if (poz < POZ && pion < PION) {
-        x = X0 + poz * dX;
-        y = Y0 + pion * dY;
+    poz = blockRow * &POZ  + row;
+    pion = blockCol * &PION + col;
+    if (poz < &POZ && pion < &PION) {
+        x = &X0 + poz * dX;
+        y = &Y0 + pion * dY;
         Zx = x;
         Zy = y;
         i = 0;
-        while ((i < ITER) &&
+        while ((i < &ITER) &&
                 ((Zx * Zx + Zy * Zy) < 4) ) {
 
             tZx = Zx * Zx - Zy * Zy + x;
@@ -184,7 +184,7 @@ __global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* P
             Zy = tZy;
             i++;
         }
-        Mandel[pion * POZ + poz] = i;
+        Mandel[pion * &POZ + poz] = i;
     }
 }
 

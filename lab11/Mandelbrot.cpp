@@ -178,7 +178,7 @@ void makePicture(int *Mandel,int width, int height, int MAX){
 }
 
 void dumpMandel(int *Mandel, int POZ, int PION) {
-    FILE *f = fopen("Mandel.txt", "wb");
+    FILE *f = fopen("Mandel.txt", "w");
     for (int i = 0; i < POZ * PION; i++) {
         fprintf(f, "%d\n", Mandel[i]);
     }

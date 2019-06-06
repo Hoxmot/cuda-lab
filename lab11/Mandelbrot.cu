@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
     dim3 dimGrid(POZ / dimBlock.x, PION / dimBlock.y);
     start=clock();
     cudaMandel<<<dimGrid, dimBlock>>>(x0_gpu, y0_gpu, x1_gpu, y1_gpu, poz_gpu, pion_gpu, iter_gpu, Result_gpu);
-    __syncthreads();
+    cudaDeviceSynchronize();
     end=clock();
     
     printf("\nComputing took %lf s\n\n", 1.0 * (end-start) / CLOCKS_PER_SEC);

@@ -15,6 +15,30 @@
 
 __global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER,int* Mandel);
 
+void handleCudaMalloc(void **var, ssize_t size) {
+    cudaError_t status;
+    status = cudaMalloc(var, size);
+    if (status != cudaSuccess) {
+	    printf("%s\n", cudaGetErrorString(status));
+    }
+}
+
+void handleCudaMemcpy(void* dst, const void* src, ssize_t size, cudaMemcpyKind kind) {
+    cudaError_t status;
+    status = cudaMemcpy(dst, src, size, kind);
+    if (status != cudaSuccess) {
+        printf("%s\n", cudaGetErrorString(status));
+    }
+}
+
+void handleCudaFree(void* pointer) {
+    cudaError_t status;
+    status = cudaFree(pointer);
+    if (status != cudaSuccess) {
+        printf("%s\n", cudaGetErrorString(status));
+    }
+}
+
 int main(int argc, char **argv) {
 
 #ifdef PARAM
@@ -57,81 +81,35 @@ int main(int argc, char **argv) {
     cudeError_t status;
 
     // Result
-    status = cudaMalloc((void**)&Result_gpu, sizeof(int) * POZ * PION);
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&Result_gpu, sizeof(int) * POZ * PION);
 
     // X0
-    status = cudaMalloc((void**)&x0_gpu, sizeof(double));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(x0_gpu, &X0, sizeof(double), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&x0_gpu, sizeof(double));
+    handleCudaMemcpy(x0_gpu, &X0, sizeof(double), cudaMemcpyHostToDevice);
 
     //  Y0
-    status = cudaMalloc((void**)&y0_gpu, sizeof(double));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(y0_gpu, &Y0, sizeof(double), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&y0_gpu, sizeof(double));
+    handleCudaMemcpy(y0_gpu, &Y0, sizeof(double), cudaMemcpyHostToDevice);
 
     // X1
-    status = cudaMalloc((void**)&x1_gpu, sizeof(double));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(x1_gpu, &X1, sizeof(double), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&x1_gpu, sizeof(double));
+    handleCudaMemcpy(x1_gpu, &X1, sizeof(double), cudaMemcpyHostToDevice);
 
     // Y1
-    status = cudaMalloc((void**)&y1_gpu, sizeof(double));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(y1_gpu, &Y1, sizeof(double), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&y1_gpu, sizeof(double));
+    handleCudaMemcpy(y1_gpu, &Y1, sizeof(double), cudaMemcpyHostToDevice);
 
     // POZ
-    status = cudaMalloc((void**)&poz_gpu, sizeof(int));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(poz_gpu, &POZ, sizeof(int), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&poz_gpu, sizeof(int));
+    handleCudaMemcpy(poz_gpu, &POZ, sizeof(int), cudaMemcpyHostToDevice);
 
     // PION
-    status = cudaMalloc((void**)&pion_gpu, sizeof(int));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(pion_gpu, &PION, sizeof(int), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMalloc((void**)&pion_gpu, sizeof(int));
+    handleCudaMemcpy(pion_gpu, &PION, sizeof(int), cudaMemcpyHostToDevice);
 
     // ITER
-    status = cudaMalloc((void**)&iter_gpu, sizeof(int));
-    if (status != cudaSuccess) {
-	    printf("%s\n", cudaGetErrorString(status));
-    }
-    status = cudaMemcpy(iter_gpu, &ITER, sizeof(int), cudaMemcpyHostToDevice);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
-
+    handleCudaMalloc((void**)&iter_gpu, sizeof(int));
+    handleCudaMemcpy(iter_gpu, &ITER, sizeof(int), cudaMemcpyHostToDevice);
     
     time_t start, end;
     // do computations
@@ -141,87 +119,76 @@ int main(int argc, char **argv) {
     dim3 dimGrid(POZ / dimBlock.x, PION / dimBlock.y);
     start=clock();
     computeMandelbrot<<<dimGrid, dimBlock>>>(x0_gpu, y0_gpu, x1_gpu, y1_gpu, poz_gpu, pion_gpu, iter_gpu, Result_gpu);
+    __syncthreads();
     end=clock();
     
     printf("\nComputing took %lf s\n\n", 1.0 * (end-start) / CLOCKS_PER_SEC);
     
-    status = cudaMemcpy(Result, Result_gpu, sizeof(int) * POZ * PION, cudaMemcpyDeviceToHost);
-    if (status != cudaSuccess) {
-        printf("%s\n", cudaGetErrorString(status));
-    }
+    handleCudaMemcpy(Result, Result_gpu, sizeof(int) * POZ * PION, cudaMemcpyDeviceToHost);
 
     start=clock();
     makePicture(Result, POZ, PION, ITER);
     end=clock();
     printf("Saving took %lf s\n\n", 1.0 * (end-start) / CLOCKS_PER_SEC);
 
+    handleCudaFree(x0_gpu);
+    handleCudaFree(y0_gpu);
+    handleCudaFree(x1_gpu);
+    handleCudaFree(y1_gpu);
+    handleCudaFree(poz_gpu);
+    handleCudaFree(pion_gpu);
+    handleCudaFree(iter_gpu);
+    handleCudaFree(Result_gpu);
+
     return 0;
 }
 
-__global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER,int* Mandel) {
+__global__ int cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* POZ, int* PION, int* ITER, int* Mandel) {
     
     double dX = (X1-X0) / (POZ-1);
     double dY = (Y1-Y0) / (PION-1);
-    double x, y, Zx, Zy, tZx, tZy;
+    double tZx, tZy;
     int i;
+    int poz, pion;
+
+    double x, y, Zx, Zy;
+
+    int blockRow = blockIdx.y;
+    int blockCol = blockIdx.x;
+
+    int row = threadIdx.y;
+    int col = threadIdx.x;
 
     int step = gridDim.x * blockDim.x;
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    
-    for (int pion=0; pion<PION; pion++) {
-        for (int poz=0;poz<POZ; poz++) {
-            x=X0+poz*dX;
-            y=Y0+pion*dY;
-            Zx=x;
-            Zy=y;
-            i=0;
-            while ( (i<ITER) && ((Zx*Zx+Zy*Zy)<4) )
-            {
-                tZx = Zx*Zx-Zy*Zy+x;
-                tZy = 2*Zx*Zy+y;
-                Zx = tZx;
-                Zy = tZy;
-                i++;
-            }
-            Mandel[pion * POZ + poz] = i;
+
+//    __shared__ double Zx[BLOCK_SIZE][BLOCK_SIZE];
+//    __shared__ double Zy[BLOCK_SIZE][BLOCK_SIZE];
+//    __shared__ double x[BLOCK_SIZE][BLOCK_SIZE];
+//    __shared__ double y[BLOCK_SIZE][BLOCK_SIZE];
+
+    poz = blockRow * POZ  + row;
+    pion = blockCol * PION + col;
+    if (poz < POZ && pion < PION) {
+        x = X0 + poz * dX;
+        y = Y0 + pion * dY;
+        Zx = x;
+        Zy = y;
+        i = 0;
+        while ((i < ITER) &&
+                ((Zx * Zx + Zy * Zy) < 4) ) {
+
+            tZx = Zx * Zx - Zy * Zy + x;
+            tZy = 2 * Zx * Zy + y;
+            Zx = tZx;
+            Zy = tZy;
+            i++;
         }
+        Mandel[pion * POZ + poz] = i;
     }
 }
 
-int computeMandelbrot(double X0, double Y0, double X1, double Y1, int POZ, int PION, int ITER,int *Mandel ){
-double dX = (X1-X0) / (POZ-1);
-double dY = (Y1-Y0) / (PION-1);
-double x, y, Zx, Zy, tZx, tZy;
-int SUM = 0;
-int i;
-
-    printf("Computations for rectangle { (%lf %lf), (%lf %lf) }\n",X0,Y0,X1,Y1);
-
-    for (int pion=0; pion<PION; pion++) {
-        for (int poz=0;poz<POZ; poz++) {
-            x=X0+poz*dX;
-            y=Y0+pion*dY;
-            Zx=x;
-            Zy=y;
-            i=0;
-            printf("%d %d %lf %lf\n",pion,poz,y,x);
-            while ( (i<ITER) && ((Zx*Zx+Zy*Zy)<4) )
-            {
-                tZx = Zx*Zx-Zy*Zy+x;
-                tZy = 2*Zx*Zy+y;
-                Zx = tZx;
-                Zy = tZy;
-                i++;
-            }
-            Mandel[pion * POZ + poz] = i;
-            SUM += i;
-        }
-        //printf("Line %d, sum=%d\n",pion,SUM);
-    }
-    return SUM;
-}
-
-void makePicture(int *Mandel,int width, int height, int MAX){
+void makePicture(int *Mandel,int width, int height, int MAX) {
     
     int red_value, green_value, blue_value;
     

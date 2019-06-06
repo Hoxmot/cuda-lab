@@ -70,6 +70,11 @@ int main(int argc, char **argv) {
     end=clock();
     printf("Saving took %lf s\n\n",1.0*(end-start)/CLOCKS_PER_SEC);
 
+    dumpMandel(Iters, POZ, PION);
+
+    free(Iters);
+
+    return 0;
 }
     
 int computeMandelbrot(double X0, double Y0, double X1, double Y1, int POZ, int PION, int ITER,int *Mandel ){
@@ -104,41 +109,6 @@ int i;
     }
     return SUM;
 }
-
-
-int computeMandelbrot2(double X0, double Y0, double X1, double Y1, int POZ, int PION, int ITER,int *Mandel ){
-    double    dX=(X1-X0)/(POZ-1);
-    double    dY=(Y1-Y0)/(PION-1);
-    double x,y,Zx,Zy,tZx;
-    int SUM=0;
-    int i;
-    int SIZE=POZ*PION;
-    int pion, poz;
-    
-    for (int indx=0;indx<SIZE;i++) {
-        pion=indx / POZ;
-        poz=indx % POZ;
-        // printf("%d %d %d ",indx,pion,poz);
-        x=X0+poz*dX;
-        y=Y0+pion*dY;
-        // printf("%lf %lf\n",x,y);
-        Zx=x;
-        Zy=y;
-        i=0;
-            
-        while ( (i<ITER) && ((Zx*Zx+Zy*Zy)<4) ){
-            tZx = Zx*Zx-Zy*Zy+x;
-            Zy = 2*Zx*Zy+y;
-            Zx = tZx;
-            
-            i++;
-        }
-        Mandel[indx] = i;
-        SUM+=i;
-    }
-    return SUM;
-}
-
 
 void makePicture(int *Mandel,int width, int height, int MAX){
     
@@ -207,73 +177,9 @@ void makePicture(int *Mandel,int width, int height, int MAX){
     
 }
 
-
-void makePictureInt(int *Mandel,int width, int height, int MAX){
-    
-    double scale = 255.0/MAX;
-    
-    int red_value, green_value, blue_value;
-
-    
-    int MyPalette[35][3]={
-        {255,0,255},
-        {248,0,240},
-        {240,0,224},
-        {232,0,208},
-        {224,0,192},
-        {216,0,176},
-        {208,0,160},
-        {200,0,144},
-        {192,0,128},
-        {184,0,112},
-        {176,0,96},
-        {168,0,80},
-        {160,0,64},
-        {152,0,48},
-        {144,0,32},
-        {136,0,16},
-        {128,0,0},
-        {120,16,0},
-        {112,32,0},
-        {104,48,0},
-        {96,64,0},
-        {88,80,0},
-        {80,96,0},
-        {72,112,0},
-        {64,128,0},
-        {56,144,0},
-        {48,160,0},
-        {40,176,0},
-        {32,192,0},
-        {16,224,0},
-        {8,240,0},
-        {0,0,0}
-    };
-    
-    FILE *f = fopen("Mandel.ppm", "wb");
-    
-    fprintf(f, "P3\n%i %i 255\n", width, height);
-    printf("MAX = %d, scale %lf\n",MAX,scale);
-    for (int j=0; j<height; j++) {
-        for (int i=0; i<width; i++)
-        {
-            //if ( ((i%4)==0) && ((j%4)==0) ) printf("%d ",Mandel[j*width+i]);
-            //red_value = (int) round(scale*(Mandel[j*width+i])/16);
-            //green_value = (int) round(scale*(Mandel[j*width+i])/16);
-            //blue_value = (int) round(scale*(Mandel[j*width+i])/16);
-            int indx= (int) round(4*log2(Mandel[j*width+i]+1));
-            red_value=MyPalette[indx][0];
-            green_value=MyPalette[indx][2];
-            blue_value=MyPalette[indx][1];
-            
-            fprintf(f,"%d ",red_value);   // 0 .. 255
-            fprintf(f,"%d ",green_value); // 0 .. 255
-            fprintf(f,"%d ",blue_value);  // 0 .. 255
-        }
-        fprintf(f,"\n");
-        //if ( (j%4)==0)  printf("\n");
-
+void dumpMandel(int *Mandel, int POZ, int PION) {
+    FILE *f = fopen("Mandel.txt", "wb");
+    for (int i = 0; i < POZ * PION; i++) {
+        fprintf(f, "%d\n", Mandel[i]);
     }
-    fclose(f);
-    
 }

@@ -137,6 +137,10 @@ int main(int argc, char **argv) {
     end=clock();
     printf("Saving took %lf s\n\n", 1.0 * (end-start) / CLOCKS_PER_SEC);
 
+    dumpMandel(Result, POZ, PION);
+
+    free(Result);
+
     handleCudaFree(x0_gpu);
     handleCudaFree(y0_gpu);
     handleCudaFree(x1_gpu);
@@ -177,9 +181,7 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
         Zx = x;
         Zy = y;
         i = 0;
-        while ((i < *ITER) &&
-                ((Zx * Zx + Zy * Zy) < 4) ) {
-            
+        while ((i < *ITER) && ((Zx * Zx + Zy * Zy) < 4)) {
             tZx = Zx * Zx - Zy * Zy + x;
             tZy = 2 * Zx * Zy + y;
             Zx = tZx;
@@ -255,4 +257,11 @@ void makePicture(int *Mandel,int width, int height, int MAX) {
     }
     fclose(f);
     
+}
+
+void dumpMandel(int *Mandel, int POZ, int PION) {
+    FILE *f = fopen("cudaMandel.txt", "wb");
+    for (int i = 0; i < POZ * PION; i++) {
+        fprintf(f, "%d\n", Mandel[i]);
+    }
 }

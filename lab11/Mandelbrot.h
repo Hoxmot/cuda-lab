@@ -20,3 +20,4 @@
 int computeMandelbrot(double X0, double Y0, double X1, double Y1, int POZ, int PION, int ITER, int *Mandel);
 void makePicture(int *Mandel, int width, int height, int MAX);
 void makePictureInt(int *Mandel,int width, int height, int MAX);
+void dumpMandel(int *Mandel, int POZ, int PION);

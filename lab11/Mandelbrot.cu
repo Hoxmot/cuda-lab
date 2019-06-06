@@ -166,12 +166,12 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
     poz = blockRow * (*POZ)  + row;
     pion = blockCol * (*PION) + col;
     if (poz < *POZ && pion < *PION) {
-        x = &X0 + poz * dX;
-        y = &Y0 + pion * dY;
+        x = (*X0) + poz * dX;
+        y = (*Y0) + pion * dY;
         Zx = x;
         Zy = y;
         i = 0;
-        while ((i < &ITER) &&
+        while ((i < *ITER) &&
                 ((Zx * Zx + Zy * Zy) < 4) ) {
 
             tZx = Zx * Zx - Zy * Zy + x;

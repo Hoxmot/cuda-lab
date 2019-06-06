@@ -172,7 +172,6 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
     int poz = blockRow * BLOCK_SIZE  + row;
     int pion = blockCol * BLOCK_SIZE + col;
     if (poz < *POZ && pion < *PION) {
-        printf("%d x %d ; %d x %d\n", blockRow, blockCol, row, col);
         x = (*X0) + poz * dX;
         y = (*Y0) + pion * dY;
         Zx = x;

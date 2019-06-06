@@ -155,7 +155,6 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
     double dY = (*Y1 - *Y0) / (*PION - 1);
     double tZx, tZy;
     int i;
-    int poz, pion;
 
     double x, y, Zx, Zy;
 
@@ -170,8 +169,8 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
 //    __shared__ double x[BLOCK_SIZE][BLOCK_SIZE];
 //    __shared__ double y[BLOCK_SIZE][BLOCK_SIZE];
 
-    poz = blockRow * (*POZ)  + row;
-    pion = blockCol * (*PION) + col;
+    int poz = blockRow * (*POZ)  + row;
+    int pion = blockCol * (*PION) + col;
     if (poz < *POZ && pion < *PION) {
         x = (*X0) + poz * dX;
         y = (*Y0) + pion * dY;
@@ -180,7 +179,10 @@ __global__ void cudaMandel(double* X0, double* Y0, double* X1, double* Y1, int* 
         i = 0;
         while ((i < *ITER) &&
                 ((Zx * Zx + Zy * Zy) < 4) ) {
-
+            
+            if (i = 0) {
+                printf("%d x %d ; %d x %d\n", blockRow, blockCol, row, col);
+            }
             tZx = Zx * Zx - Zy * Zy + x;
             tZy = 2 * Zx * Zy + y;
             Zx = tZx;

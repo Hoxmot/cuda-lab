@@ -43,6 +43,14 @@ int main(int argc, char **argv) {
 
     //Zaalokuj tablicę do przechowywania wyniku
 
+    printf("X0 = %f\n", X0);
+    printf("Y0 = %f\n", Y0);
+    printf("X1 = %f\n", X1);
+    printf("Y1 = %f\n", Y1);
+    printf("POZ = %d\n", POZ);
+    printf("PION = %d\n", PION);
+    printf("ITER = %d\n", ITER);
+
     int *Iters;
     Iters= (int*) malloc(sizeof(int)*POZ*PION);
     

@@ -14,4 +14,4 @@ Repository containing my code written for cuda classes at University of Warsaw. 
 | 4      | lab6  |                    |
 | 5      | lab7  |                    |
 | 6      | lab10 |                    |
-| 7      | lab11 |                    |
+| 7      | lab11 | :heavy_check_mark: |

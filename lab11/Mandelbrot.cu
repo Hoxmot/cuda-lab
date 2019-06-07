@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     double Y1 = -0.1;
     int POZ = 2048;
     int PION = 2048;
-    int ITER = 2566;
+    int ITER = 256;
 #endif /* PARAM */
 
     printf("X0 = %f\n", X0);

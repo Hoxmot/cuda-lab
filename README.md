@@ -6,12 +6,13 @@ Repository containing my code written for cuda classes at University of Warsaw. 
 
 ## Exercises
 
-| Number | Lab   | Done               |
-|:------:|:-----:|:------------------:|
-| 1      | lab4  | :heavy_check_mark: |
-| 2      | lab4  | :heavy_check_mark: |
-| 3      | lab5  | :heavy_check_mark: |
-| 4      | lab6  |                    |
-| 5      | lab7  |                    |
-| 6      | lab10 |                    |
-| 7      | lab11 | :heavy_check_mark: |
+| Number | Lab        | Done               |
+|:------:|:----------:|:------------------:|
+| 1      | lab4       | :heavy_check_mark: |
+| 2      | lab4       | :heavy_check_mark: |
+| 3      | lab5       | :heavy_check_mark: |
+| 4      | lab6       |                    |
+| 5      | lab7       |                    |
+| 6      | lab10      |                    |
+| 7      | lab11      | :heavy_check_mark: |
+| 8      | assignment |                    |

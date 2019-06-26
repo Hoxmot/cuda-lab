@@ -98,7 +98,8 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
  
     __shared__ float shrX[N], shrY[N], shrZ[N];
     __shared__ float newX[N], newY[N], newZ[N];
-    
+    __shared__ float rnd;
+
     int sY = 0;
     int T = 270 + offset * 10;
     float kT = .01/T;
@@ -125,6 +126,8 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
             __syncthreads();
 
             E = Energy(newX, newY, newZ, i) - Energy(shrX, shrY, shrZ, i);
+            if (idx == i)
+                rnd = RAND0(&state)
             __syncthreads();
 
             if (E < 0) {
@@ -132,7 +135,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
                 if (idx == 0)
                     sY++;
             }
-            else if(RAND0() < expf(-E/kT)){
+            else if(rnd < expf(-E/kT)){
                 makemove(shrX, shrY, shrZ, newX, newY, newZ);
                 if (idx == 0)
                     sY++;

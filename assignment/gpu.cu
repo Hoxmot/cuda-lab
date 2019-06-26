@@ -88,7 +88,7 @@ __device__ void newpos(float* positionNEWX, float* positionNEWY, float* position
         positionNEWY[i] -= size;
     
     positionNEWZ[i] += RAND1(state);
-    
+    `
     if (positionNEWZ[i] < 0)
         positionNEWZ[i] = fabsf(positionNEWZ[i]);
     else if (positionNEWZ[i] > size)
@@ -107,7 +107,9 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     int offset = blockIdx.x * N;
 
     // I don't have to compute the function multiple times
-    __shared__ float size = cbrtf(N);
+    __shared__ float size;
+    if (idx == 0)
+        size = cbrtf(N);
  
     __shared__ float shrX[N], shrY[N], shrZ[N];
     __shared__ float newX[N], newY[N], newZ[N];

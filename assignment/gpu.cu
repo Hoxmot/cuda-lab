@@ -41,7 +41,7 @@ __device__ float Energy(float* positionX, float* positionY, float* positionZ, in
     __syncthreads();
 
     for (unsigned int s = N2 / 2; s > 0; s >>= 1) {
-        if (idx < s && idx + s < N) {
+        if (idx < s) {
             vec_E[idx] += vec_E[idx + s];
         }
         __syncthreads();
@@ -109,6 +109,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     __shared__ float rnd;
 
     int sY = 0;
+    float acc_sY = 0;
     int T = 270 + offset * 10;
     float kT = .01/T;
     float E;
@@ -150,13 +151,14 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
             }
             __syncthreads();
         }
+        acc_sY += sY * 1. / N;
     }
 
     positionX[offset + idx] = shrX[idx];
     positionY[offset + idx] = shrY[idx];
     positionZ[offset + idx] = shrZ[idx];
     if (idx == 0)
-        stepY[blockIdx.x] = sY;
+        stepY[blockIdx.x] = acc_sY;
 }
 
 int main() {

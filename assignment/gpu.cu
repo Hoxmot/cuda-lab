@@ -1,6 +1,6 @@
 #include <cuda_runtime_api.h>
 #include <cuda.h>
-#include <cuda_kernel.h>
+#include <curand_kernel.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -62,21 +62,21 @@ __device__ void newpos(float* positionNEWX, float* positionNEWY, float* position
 	positionNEWX[i] += RAND1(state);
     
     if (positionNEWX[i] < 0)
-        positionNEWX[i] = fabs(positionNEWX[i]);
+        positionNEWX[i] = fabsf(positionNEWX[i]);
     else if (positionNEWX[i] > size)
         positionNEWX[i] -= size;
     
     positionNEWY[i] += RAND1(state);
     
     if (positionNEWY[i] < 0)
-        positionNEWY[i] = fabs(positionNEWY[i]);
+        positionNEWY[i] = fabsf(positionNEWY[i]);
     else if (positionNEWY[i] > size)
         positionNEWY[i] -= size;
     
     positionNEWZ[i] += RAND1(state);
     
     if (positionNEWZ[i] < 0)
-        positionNEWZ[i] = fabs(positionNEWZ[i]);
+        positionNEWZ[i] = fabsf(positionNEWZ[i]);
     else if (positionNEWZ[i] > size)
         positionNEWZ[i] -= size;
 }
@@ -94,7 +94,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     int offset = blockIdx.x * N;
 
     // TODO: check CUDA cbrt
-    float size = cbrt(N);
+    float size = cbrtf(N);
  
     __shared__ float shrX[N], shrY[N], shrZ[N];
     __shared__ float newX[N], newY[N], newZ[N];
@@ -102,7 +102,8 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     int sY = 0;
     int T = 270 + offset * 10;
     float kT = .01/T;
- 
+    float E;
+
     curandState state;
     curand_init(seed, idx, 0, &state);
 
@@ -117,7 +118,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     __syncthreads();
 
     for (int k = 0; k < STEPS; k++) {
-        for (i = 0; i < N; i++) {
+        for (int i = 0; i < N; i++) {
             // HERE
             if (idx == i)
                 newpos(newX, newY, newZ, i, size, &state);
@@ -131,7 +132,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
                 if (idx == 0)
                     sY++;
             }
-            else if(RAND0() < exp(-E/kT)){
+            else if(RAND0() < expf(-E/kT)){
                 makemove(shrX, shrY, shrZ, newX, newY, newZ);
                 if (idx == 0)
                     sY++;
@@ -149,7 +150,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
 
 int main() {
      
-    float *positionX_gpu, *positionY_gpu, *positionZ_gpu, *step_gpu;
+    float *positionX_gpu, *positionY_gpu, *positionZ_gpu, *stepY_gpu;
 
     CUDA_CALL(cudaMalloc((void**)&positionX_gpu, sizeof(float) * TN));
     CUDA_CALL(cudaMalloc((void**)&positionY_gpu, sizeof(float) * TN));
@@ -160,7 +161,7 @@ int main() {
 
     dim3 dimBlock(N);
     dim3 dimGrid(T_NUMBER);
-    simulate<<<dimGrid, dimBlock>>>()positionX_gpu, positionY_gpu, positionZ_gpu, stepY_gpu, time(NULL);
+    simulate<<<dimGrid, dimBlock>>>(positionX_gpu, positionY_gpu, positionZ_gpu, stepY_gpu, time(NULL));
     
     float* positionX = (float*) malloc(TN * sizeof(float));
     float* positionY = (float*) malloc(TN * sizeof(float));
@@ -180,7 +181,7 @@ int main() {
     int T;
     for (int i = 0; i < T_NUMBER; ++i) {
         T = 270 + i * 10;
-        printf("Stepe ACC %d  %f\n", T, stepY[i] * 1./steps);
+        printf("Stepe ACC %d  %f\n", T, stepY[i] * 1./STEPS);
     }
 
     free(positionX);

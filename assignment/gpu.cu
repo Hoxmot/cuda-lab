@@ -63,15 +63,13 @@ __device__ float RAND0(curandState* state) {
 	return curand_uniform(state);
 }
 
-__device__ void makemove(float* positionX, float* positionY, float* positionZ, float* positionNEWX, float* positionNEWY, float* positionNEWZ) {
+__device__ void sync_pos(float* positionX, float* positionY, float* positionZ, float* positionNEWX, float* positionNEWY, float* positionNEWZ) {
     int idx = threadIdx.x;
     positionX[idx] = positionNEWX[idx];
     positionY[idx] = positionNEWY[idx];
     positionZ[idx] = positionNEWZ[idx];
 }
 
-// Unfortunately, only one function executes this function at a time
-// I can't write it in parallel
 __device__ void newpos(float* positionNEWX, float* positionNEWY, float* positionNEWZ, int i, float size, curandState *state) {
     positionNEWX[i] += RAND1(state);
     
@@ -115,6 +113,8 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     __shared__ float newX[N], newY[N], newZ[N];
     __shared__ float rnd;
 
+    __shared__ float tmpX[N], tmpY[N], tmpZ[N];
+
     int sY = 0;
     float acc_sY = 0;
     int T = 270 + offset * 10;
@@ -128,9 +128,8 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     shrX[idx] = RAND0(&state) * size;
     shrY[idx] = RAND0(&state) * size;
     shrZ[idx] = RAND0(&state) * size;
-    newX[idx] = shrX[idx];
-    newY[idx] = shrY[idx];
-    newZ[idx] = shrZ[idx];
+    sync_pos(newX, newY, newZ, shrX, shrY, shrZ);
+    sync_pos(tmpX, tmpY, tmpZ, shrX, shrY, shrZ);
     __syncthreads();
 
     // These 2 for loops are a bottleneck
@@ -139,9 +138,15 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     // Atom by atom
     for (int k = 0; k < STEPS; k++) {
         // step
+        // I'm calculating new position into temporary variables for all the threads
+        newpos(tmpX, tmpY, tmpZ, idx, size, &state);
         for (int i = 0; i < N; i++) {
-            if (idx == i)
-                newpos(newX, newY, newZ, i, size, &state);
+            if (idx == i) {
+                // When i is correct, I move values from tmp to new
+                newX[i] = tmpX[i];
+                newY[i] = tmpY[i];
+                newZ[i] = tmpZ[i];
+            }
             __syncthreads();
 
             E = Energy(newX, newY, newZ, i) - Energy(shrX, shrY, shrZ, i);
@@ -154,12 +159,12 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
             __syncthreads();
 
             if (E < 0) {
-                makemove(shrX, shrY, shrZ, newX, newY, newZ);
+                sync_pos(shrX, shrY, shrZ, newX, newY, newZ);
                 if (idx == 0)
                     sY++;
             }
             else if(rnd < expf(-E/kT)){
-                makemove(shrX, shrY, shrZ, newX, newY, newZ);
+                sync_pos(shrX, shrY, shrZ, newX, newY, newZ);
                 if (idx == 0)
                     sY++;
             }

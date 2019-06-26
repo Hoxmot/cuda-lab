@@ -8,6 +8,7 @@
 #include <string.h>
 
 #define N   100
+#define N2  128
 #define T_NUMBER  9    // (360 - 270) / 10 -> number of different T values
 #define TN  900  // N * T_NUMBER -> number of different T values times N
 #define STEPS 1000
@@ -19,8 +20,14 @@
 
 __device__ float Energy(float* positionX, float* positionY, float* positionZ, int i) {
     
-    __shared__ float vec_E[N];
+    // I'm using vector of size being power of 2
+    // This way reduction is easier
+    __shared__ float vec_E[N2];
     
+    // Initializing unused values to 0
+    if (idx < N2 - N)
+        vec_E[N + idx] = 0;
+
     int idx = threadIdx.x;
 	float E = 0;
 
@@ -28,12 +35,12 @@ __device__ float Energy(float* positionX, float* positionY, float* positionZ, in
     float Y = positionY[i] - positionY[idx];
     float Z = positionZ[i] - positionZ[idx];
 
-    vec_E[idx] = (i != idx) ? 1. / (X*X + Y*Y + Z*Z) : 0;
+    vec_E[idx] = (i != idx ? (1. / (X*X + Y*Y + Z*Z)) : 0);
     
     __syncthreads();
 
-    for (unsigned int s = N / 2; s > 0; s >>= 1) {
-        if (idx < s) {
+    for (unsigned int s = N2 / 2; s > 0; s >>= 1) {
+        if (idx < s && idx + s < N) {
             vec_E[idx] += vec_E[idx + s];
         }
         __syncthreads();

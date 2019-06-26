@@ -106,7 +106,7 @@ int main(){
    	start (positionX, positionY, positionZ, positionNEWX, positionNEWY, positionNEWZ, N);
    	for (k=0; k<steps; k++){
 	   stepY += step(positionX, positionY, positionZ, positionNEWX, positionNEWY, positionNEWZ, N, kT);
-	   pr(positionX, positionY, positionZ, N);
+//	   pr(positionX, positionY, positionZ, N);
    	}
 	printf("Stepe ACC %d  %f\n", T, stepY*1./steps);
    }

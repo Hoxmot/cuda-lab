@@ -88,7 +88,7 @@ __device__ void newpos(float* positionNEWX, float* positionNEWY, float* position
         positionNEWY[i] -= size;
     
     positionNEWZ[i] += RAND1(state);
-    `
+    
     if (positionNEWZ[i] < 0)
         positionNEWZ[i] = fabsf(positionNEWZ[i]);
     else if (positionNEWZ[i] > size)

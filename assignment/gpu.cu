@@ -127,7 +127,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
 
             E = Energy(newX, newY, newZ, i) - Energy(shrX, shrY, shrZ, i);
             if (idx == i)
-                rnd = RAND0(&state)
+                rnd = RAND0(&state);
             __syncthreads();
 
             if (E < 0) {
@@ -148,7 +148,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     positionY[offset + idx] = shrY[idx];
     positionZ[offset + idx] = shrZ[idx];
     if (idx == 0)
-        stepY[offset] = sY;
+        stepY[blockIdx.x] = sY;
 }
 
 int main() {
@@ -179,7 +179,7 @@ int main() {
     CUDA_CALL(cudaFree(positionX_gpu));
     CUDA_CALL(cudaFree(positionY_gpu));
     CUDA_CALL(cudaFree(positionZ_gpu));
-    CUDA_CALL(cudaFree(stepY));
+    CUDA_CALL(cudaFree(stepY_gpu));
 
     int T;
     for (int i = 0; i < T_NUMBER; ++i) {

@@ -56,6 +56,7 @@ __device__ float Energy(float* positionX, float* positionY, float* positionZ, in
     return E;
 }
 
+// I hope I've used correct functions for random values
 __device__ float RAND1(curandState* state) {
 	return (curand_uniform(state) - 0.5); 
 }
@@ -139,6 +140,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     for (int k = 0; k < STEPS; k++) {
         // step
         // I'm calculating new position into temporary variables for all the threads
+        // 0.01s of improvement, much wow
         newpos(tmpX, tmpY, tmpZ, idx, size, &state);
         for (int i = 0; i < N; i++) {
             if (idx == i) {
@@ -146,6 +148,8 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
                 newX[i] = tmpX[i];
                 newY[i] = tmpY[i];
                 newZ[i] = tmpZ[i];
+                // before:
+                // newpos(newX, newY, newZ, i, size, &state);
             }
             __syncthreads();
 
@@ -153,9 +157,9 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
 
             // I'll have to use random value in order to check whether I should make a move 
             // I can't comput RAND0() for each thread, because then the if statement may or may not fail
-            // This approach allows me to be sure the outcome is the same for all the threads
+            // This approach allows me to make sure the outcome is the same for all the threads
             if (idx == i)
-                rnd = RAND0(&state); // rnd is shared
+                rnd = RAND0(&state);  // rnd is shared
             __syncthreads();
 
             if (E < 0) {

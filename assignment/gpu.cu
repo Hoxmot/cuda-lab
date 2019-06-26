@@ -7,11 +7,15 @@
 #include <math.h>
 #include <string.h>
 
-#define N   100
-#define N2  128
-#define T_NUMBER  9    // (360 - 270) / 10 -> number of different T values
-#define TN  900  // N * T_NUMBER -> number of different T values times N
-#define STEPS 1000
+// I'm hardcoding all the constants
+// It'll be easier to use them instead of sending them as arguments
+// over and over again...
+#define N         100   // Number of atoms
+#define N2        128   // Nearest power of 2 >=N
+#define T_NUMBER  9     // (360 - 270) / 10 -> number of different T values
+#define TN        900   // N * T_NUMBER -> number of different T values times N
+                        // It's the size of arrays we have to use
+#define STEPS     1000  // Number of steps
 
 /* macro from: https://gist.github.com/NicholasShatokhin/3769635 */
 #define CUDA_CALL(x) do { if((x) != cudaSuccess) { \
@@ -23,7 +27,7 @@ __device__ float Energy(float* positionX, float* positionY, float* positionZ, in
     int idx = threadIdx.x;
 
     // I'm using vector of size being power of 2
-    // This way reduction is easier
+    // This way reduction is easier to write
     __shared__ float vec_E[N2];
     
     // Initializing unused values to 0
@@ -66,8 +70,10 @@ __device__ void makemove(float* positionX, float* positionY, float* positionZ, f
     positionZ[idx] = positionNEWZ[idx];
 }
 
+// Unfortunately, only one function executes this function at a time
+// I can't write it in parallel
 __device__ void newpos(float* positionNEWX, float* positionNEWY, float* positionNEWZ, int i, float size, curandState *state) {
-	positionNEWX[i] += RAND1(state);
+    positionNEWX[i] += RAND1(state);
     
     if (positionNEWX[i] < 0)
         positionNEWX[i] = fabsf(positionNEWX[i]);
@@ -96,13 +102,12 @@ void pr(float* positionX, float* positionY, float* positionZ) {
 	printf("\n\n");
 }
 
-// TODO
 __global__ void simulate(float* positionX, float* positionY, float* positionZ, float* stepY, unsigned long seed) {
     int idx = threadIdx.x;
     int offset = blockIdx.x * N;
 
-    // TODO: check CUDA cbrt
-    float size = cbrtf(N);
+    // I don't have to compute the function multiple times
+    __shared__ float size = cbrtf(N);
  
     __shared__ float shrX[N], shrY[N], shrZ[N];
     __shared__ float newX[N], newY[N], newZ[N];
@@ -118,7 +123,6 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     curand_init(seed, idx, 0, &state);
 
     // start
-    // TODO: state
     shrX[idx] = RAND0(&state) * size;
     shrY[idx] = RAND0(&state) * size;
     shrZ[idx] = RAND0(&state) * size;
@@ -127,16 +131,24 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
     newZ[idx] = shrZ[idx];
     __syncthreads();
 
+    // These 2 for loops are a bottleneck
+    // I can't execute them in parallel
+    // The simulation is executed step by step
+    // Atom by atom
     for (int k = 0; k < STEPS; k++) {
+        // step
         for (int i = 0; i < N; i++) {
-            // HERE
             if (idx == i)
                 newpos(newX, newY, newZ, i, size, &state);
             __syncthreads();
 
             E = Energy(newX, newY, newZ, i) - Energy(shrX, shrY, shrZ, i);
+
+            // I'll have to use random value in order to check whether I should make a move 
+            // I can't comput RAND0() for each thread, because then the if statement may or may not fail
+            // This approach allows me to be sure the outcome is the same for all the threads
             if (idx == i)
-                rnd = RAND0(&state);
+                rnd = RAND0(&state); // rnd is shared
             __syncthreads();
 
             if (E < 0) {
@@ -152,6 +164,7 @@ __global__ void simulate(float* positionX, float* positionY, float* positionZ, f
             __syncthreads();
         }
         acc_sY += sY * 1. / N;
+        sY = 0;
     }
 
     positionX[offset + idx] = shrX[idx];
@@ -170,8 +183,8 @@ int main() {
     CUDA_CALL(cudaMalloc((void**)&positionZ_gpu, sizeof(float) * TN));
     CUDA_CALL(cudaMalloc((void**)&stepY_gpu, sizeof(float) * T_NUMBER));
 
-    // TODO: setpu kernel size and call it
-
+    // block for every T
+    // thread for every atom
     dim3 dimBlock(N);
     dim3 dimGrid(T_NUMBER);
     simulate<<<dimGrid, dimBlock>>>(positionX_gpu, positionY_gpu, positionZ_gpu, stepY_gpu, time(NULL));
@@ -196,6 +209,9 @@ int main() {
         T = 270 + i * 10;
         printf("Stepe ACC %d  %f\n", T, stepY[i] * 1./STEPS);
     }
+
+    // I'm not using positionX, positionY, and positionZ
+    // But it can be used in some next simulations/operations
 
     free(positionX);
     free(positionY);

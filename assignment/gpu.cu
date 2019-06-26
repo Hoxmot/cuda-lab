@@ -20,6 +20,8 @@
 
 __device__ float Energy(float* positionX, float* positionY, float* positionZ, int i) {
     
+    int idx = threadIdx.x;
+
     // I'm using vector of size being power of 2
     // This way reduction is easier
     __shared__ float vec_E[N2];
@@ -28,7 +30,6 @@ __device__ float Energy(float* positionX, float* positionY, float* positionZ, in
     if (idx < N2 - N)
         vec_E[N + idx] = 0;
 
-    int idx = threadIdx.x;
 	float E = 0;
 
     float X = positionX[i] - positionX[idx];
